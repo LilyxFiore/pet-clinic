@@ -137,5 +137,25 @@ pipeline {
                 sh 'docker push $PRODUCTION_LATEST'
             }
         }
+        stage('Dependency check') {
+            agent any
+            steps {
+                sh "mvn --batch-mode dependency-check:check"
+            }
+            post {
+                always {
+                    dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+                    publishHTML(target:[
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target',
+                        reportFiles: 'dependency-check-report.html',
+                        reportName: "OWASP Dependency Check Report"
+                    ])
+                }
+            }
+        }
+
     }
 }
